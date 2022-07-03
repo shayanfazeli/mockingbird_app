@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mockingbird: Topic Modeling</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="{{url_for('static', filename='images/form/icons/favicon.ico')}}"/>
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='fonts/form/font-awesome-4.7.0/css/font-awesome.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='vendor/animate/animate.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='vendor/css-hamburgers/hamburgers.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='vendor/select2/select2.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/form/util.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/form/main.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layouts/blog.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layouts/grapher.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/grapher.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/d3_grapher.js') }}"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300" rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+
+    <!--===============================================================================================-->
+</head>
+<body>
+
+<div class="bg-contact2" style="background-image: url('{{ url_for('static', filename='images/form/green_hearts.jpg') }}');">
+    <div class="container-contact2">
+<div class="wrap-contact2" style="width: 1500px">
+<!--            <form class="contact2-form validate-form">-->
+					<span class="contact2-form-title">
+						Discussion Topic Trajectories
+					</span>
+
+                <div>
+                                <div class="post-description">
+                </div>
+                    <div class="post-description"><p>[]</p></div>
+                    {% if lda_vis != '' %}
+                    <div class="post-description">
+                        {{lda_vis | safe}}
+                    </div>
+                    {% endif %}
+                    <div class="post-description">
+                        {% if mode in ['data_received'] %}
+                        <!--        <div class="wrap-contact2">-->
+                                <div class="chart" id="graph">
+                                <script>
+                                    var graphs = {{data | safe}};
+                                    var layout = {{layout | safe}};
+                                    Plotly.plot('graph',graphs,layout);
+                                </script>
+                            </div>
+                        {% endif %}
+                    <p>
+    By <a href="http://er.cs.ucla.edu" class="post-author">ER Lab</a>
+                    </p>
+                    </div>
+                <div class="post-description">
+                    <div class="post-description">
+                        <form action="" method="post" id="submission_form" onsubmit="$('.modal').show();" novalidate>
+                            {{ form.hidden_tag() }}
+                            <h2>Reference</h2>
+                            <p>
+                                {{ form.support_institutions.label }}<br>
+                                <div class="wrap-input2 validate-input" data-validate="Text is required">
+                                    {{ form.support_institutions(class_="input2") }}<span class="focus-input2"
+                                                                                data-placeholder=""></span>
+                                </div>
+
+                                <br>
+                                {% for error in form.support_institutions.errors %}
+                                <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <p>
+                                {{ form.topic_counts.label }}<br>
+                                {{ form.topic_counts() }}<br>
+                                {% for error in form.topic_counts.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <p>
+                                {{ form.support_min_date.label }}<br>
+                            <div class="wrap-input2 validate-input" data-validate="Message is required">
+                                {{ form.support_min_date() }}<br>
+                        <span class="focus-input2" data-placeholder=""></span></div>
+                                {% for error in form.support_min_date.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <p>
+                                {{ form.support_max_date.label }}<br>
+                            <div class="wrap-input2 validate-input" data-validate="Message is required">
+                                {{ form.support_max_date() }}<br>
+                        <span class="focus-input2" data-placeholder=""></span></div>
+                                {% for error in form.support_max_date.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <h2>Query</h2>
+                            <p>
+                                {{ form.query_institutions.label }}<br>
+                                <div class="wrap-input2 validate-input" data-validate="Text is required">
+                                    {{ form.query_institutions(class_="input2") }}<span class="focus-input2"
+                                                                                data-placeholder=""></span>
+                                </div>
+
+                                <br>
+                                {% for error in form.query_institutions.errors %}
+                                <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <p>
+                                {{ form.query_min_date.label }}<br>
+                            <div class="wrap-input2 validate-input" data-validate="Message is required">
+                                {{ form.query_min_date() }}<br>
+                        <span class="focus-input2" data-placeholder=""></span></div>
+                                {% for error in form.query_min_date.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+
+
+                            <p>
+                                {{ form.query_max_date.label }}<br>
+                            <div class="wrap-input2 validate-input" data-validate="Message is required">
+                                {{ form.query_max_date() }}<br>
+                        <span class="focus-input2" data-placeholder=""></span></div>
+                                {% for error in form.query_max_date.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+
+                            <p>
+                                {{ form.query_step_in_days.label }}<br>
+                                {{ form.query_step_in_days() }}<br>
+                                {% for error in form.query_step_in_days.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <p>{{ form.submit(type="submit", class="contact2-form-btn", style="height: 10px, width: 10px") }}</p>
+                        </form>
+                </div>
+
+                    <div class="modal">Generating the results, Please wait...</div>
+                </div>
+            {% if not data == {} %}
+<!--        <div class="wrap-contact2">-->
+		<div class="radarChart"></div>
+<!--            </div>-->
+		{% endif %}
+<!--            </form>-->
+        </div>
+
+
+
+    </div>
+
+    </div>
+
+</div>
+
+
+
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/jquery/jquery-3.2.1.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/bootstrap/js/popper.js')}}"></script>
+<script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/select2/select2.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='js/forms/main.js')}}"></script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-23581568-13"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'UA-23581568-13');
+</script>
+
+</body>
+</html>
