@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Mockingbird: Topic Modeling</title>
+    <title>Mockingbird: Word Frequencies</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--===============================================================================================-->
@@ -41,18 +41,13 @@
 <div class="wrap-contact2" style="width: 1500px">
 <!--            <form class="contact2-form validate-form">-->
 					<span class="contact2-form-title">
-						Discussion Topic Trajectories
+						Term Frequencies
 					</span>
 
                 <div>
                                 <div class="post-description">
                 </div>
                     <div class="post-description"><p>Please choose the desired values for the corresponding parameters to continue.</p></div>
-                    {% if lda_vis != '' %}
-                    <div class="post-description">
-                        {{lda_vis | safe}}
-                    </div>
-                    {% endif %}
                     <div class="post-description">
                         {% if mode in ['data_received'] %}
                         <!--        <div class="wrap-contact2">-->
@@ -72,45 +67,18 @@
                     <div class="post-description">
                         <form action="" method="post" id="submission_form" onsubmit="$('.modal').show();" novalidate>
                             {{ form.hidden_tag() }}
-                            <h2>Reference</h2>
                             <p>
-                                {{ form.support_institutions.label }}<br>
+                                {{ form.query_terms.label }}<br>
                                 <div class="wrap-input2 validate-input" data-validate="Text is required">
-                                    {{ form.support_institutions(class_="input2") }}<span class="focus-input2"
+                                    {{ form.query_terms(class_="input2") }}<span class="focus-input2"
                                                                                 data-placeholder=""></span>
                                 </div>
 
                                 <br>
-                                {% for error in form.support_institutions.errors %}
+                                {% for error in form.query_terms.errors %}
                                 <span style="color: red;">[{{ error }}]</span>
                                 {% endfor %}
                             </p>
-                            <p>
-                                {{ form.topic_counts.label }}<br>
-                                {{ form.topic_counts() }}<br>
-                                {% for error in form.topic_counts.errors %}
-                                    <span style="color: red;">[{{ error }}]</span>
-                                {% endfor %}
-                            </p>
-                            <p>
-                                {{ form.support_min_date.label }}<br>
-                            <div class="wrap-input2 validate-input" data-validate="Message is required">
-                                {{ form.support_min_date() }}<br>
-                        <span class="focus-input2" data-placeholder=""></span></div>
-                                {% for error in form.support_min_date.errors %}
-                                    <span style="color: red;">[{{ error }}]</span>
-                                {% endfor %}
-                            </p>
-                            <p>
-                                {{ form.support_max_date.label }}<br>
-                            <div class="wrap-input2 validate-input" data-validate="Message is required">
-                                {{ form.support_max_date() }}<br>
-                        <span class="focus-input2" data-placeholder=""></span></div>
-                                {% for error in form.support_max_date.errors %}
-                                    <span style="color: red;">[{{ error }}]</span>
-                                {% endfor %}
-                            </p>
-                            <h2>Query</h2>
                             <p>
                                 {{ form.query_institutions.label }}<br>
                                 <div class="wrap-input2 validate-input" data-validate="Text is required">
@@ -150,12 +118,12 @@
                                 {% for error in form.query_step_in_days.errors %}
                                     <span style="color: red;">[{{ error }}]</span>
                                 {% endfor %}
-                            </p>
+                            </p> </br>
                             <p>{{ form.submit(type="submit", class="contact2-form-btn", style="height: 10px, width: 10px") }}</p>
                         </form>
                 </div>
 
-                    <div class="modal"><p>Generating the results, Please wait and do not close this window while processing. This procedure can take > 15 minutes to complete...</p></div>
+                    <div class="modal"><p>Generating the results, Please wait as this procedure can take > 15 minutes to complete...</p></div>
                 </div>
             {% if not data == {} %}
 <!--        <div class="wrap-contact2">-->

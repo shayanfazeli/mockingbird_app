@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<!--
+	Fractal by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Mockingbird</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{{url_for('static', filename='fractal/assets/css/main.css')}}" />
+		<noscript><link rel="stylesheet" href="{{url_for('static', filename='fractal/assets/css/noscript.css')}}" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<header id="header">
+				<div class="content">
+					<h1><a href="#">Mockingbird</a></h1>
+					<p>Trajectory Analytics for Institutional Tweets</p>
+					<ul class="actions">
+						<li><a href="{{ url_for('topic_modeling.topic_modeling') }}" class="button primary icon solid fa-bullseye">Topic Modeling</a></li>
+					<li><a href="{{ url_for('word_frequencies.word_frequencies') }}" class="button primary icon solid fa-wave-square">Word Frequencies</a></li>
+					<li><a href="{{ url_for('word_clouds.word_clouds') }}" class="button primary icon solid fa-cloud">Word Clouds</a></li></ul>
+					<ul class="actions">
+						<li><a href="{{url_for('static', filename='accounts.csv')}}" class="button icon solid fa-database">Current Data</a></li>
+						<li><a href="https://forms.gle/JqGgxPWnAP1hZmUj7" class="button icon solid fa-comment">Recommend Handle</a></li>
+					</ul>
+				</div>
+				<div class="image phone"><div class="inner"><img src="{{url_for('static', filename='fractal/images/screen.jpg')}}" alt="" /></div></div>
+			</header>
+
+		<!-- One -->
+<!--			<section id="one" class="wrapper style2 special">-->
+<!--				<header class="major">-->
+<!--					<h2>Sed ipsum magna lorem tempus amet<br />-->
+<!--					vehicula et gravida elementum</h2>-->
+<!--				</header>-->
+<!--				<ul class="icons major">-->
+<!--					<li><span class="icon solid fa-camera-retro"><span class="label">Shoot</span></span></li>-->
+<!--					<li><span class="icon solid fa-sync"><span class="label">Process</span></span></li>-->
+<!--					<li><span class="icon solid fa-cloud"><span class="label">Upload</span></span></li>-->
+<!--				</ul>-->
+<!--			</section>-->
+
+		<!-- Two -->
+<!--			<section id="two" class="wrapper">-->
+<!--				<div class="inner alt">-->
+<!--					<section class="spotlight">-->
+<!--						<div class="image"><img src="{{url_for('static', filename='fractal/images/pic01.jpg')}}" alt="" /></div>-->
+<!--						<div class="content">-->
+<!--							<h3>Magna sed ultrices</h3>-->
+<!--							<p>Morbi mattis ornare ornare. Duis quam turpis, gravida at leo elementum elit fusce accumsan dui libero, quis vehicula lectus ultricies eu. In convallis amet leo non sapien iaculis efficitur consequat lorem ipsum.</p>-->
+<!--						</div>-->
+<!--					</section>-->
+<!--					<section class="spotlight">-->
+<!--						<div class="image"><img src="{{url_for('static', filename='fractal/images/pic02.jpg')}}" alt="" /></div>-->
+<!--						<div class="content">-->
+<!--							<h3>Ultrices nullam aliquam</h3>-->
+<!--							<p>Morbi mattis ornare ornare. Duis quam turpis, gravida at leo elementum elit fusce accumsan dui libero, quis vehicula lectus ultricies eu. In convallis amet leo non sapien iaculis efficitur consequat lorem ipsum.</p>-->
+<!--						</div>-->
+<!--					</section>-->
+<!--					<section class="spotlight">-->
+<!--						<div class="image"><img src="{{url_for('static', filename='fractal/images/pic03.jpg')}}" alt="" /></div>-->
+<!--						<div class="content">-->
+<!--							<h3>Aliquam sed magna</h3>-->
+<!--							<p>Morbi mattis ornare ornare. Duis quam turpis, gravida at leo elementum elit fusce accumsan dui libero, quis vehicula lectus ultricies eu. In convallis amet leo non sapien iaculis efficitur consequat lorem ipsum.</p>-->
+<!--						</div>-->
+<!--					</section>-->
+<!--					<section class="special">-->
+<!--						<ul class="icons labeled">-->
+<!--							<li><span class="icon solid fa-camera-retro"><span class="label">Ipsum lorem accumsan</span></span></li>-->
+<!--							<li><span class="icon solid fa-sync"><span class="label">Sed vehicula elementum</span></span></li>-->
+<!--							<li><span class="icon solid fa-cloud"><span class="label">Elit fusce consequat</span></span></li>-->
+<!--							<li><span class="icon solid fa-code"><span class="label">Lorem nullam tempus</span></span></li>-->
+<!--							<li><span class="icon solid fa-desktop"><span class="label">Adipiscing amet sapien</span></span></li>-->
+<!--						</ul>-->
+<!--					</section>-->
+<!--				</div>-->
+<!--			</section>-->
+
+<!--		&lt;!&ndash; Three &ndash;&gt;-->
+<!--			<section id="three" class="wrapper style2 special">-->
+<!--				<header class="major">-->
+<!--					<h2>Magna leo sapien gravida</h2>-->
+<!--					<p>Gravida at leo elementum elit fusce accumsan dui libero, quis vehicula<br />-->
+<!--					lectus ultricies eu. In convallis amet leo sapien iaculis efficitur.</p>-->
+<!--				</header>-->
+<!--				<ul class="actions special">-->
+<!--					<li><a href="#" class="button primary icon solid fa-bullseye">Topic Modeling</a></li>-->
+<!--					<li><a href="#" class="button primary icon solid fa-wave-square">Word Frequencies</a></li>-->
+<!--					<li><a href="#" class="button primary icon solid fa-cloud">Word Clouds</a></li>-->
+<!--					<li><a href="#" class="button">Learn More</a></li>-->
+<!--				</ul>-->
+<!--			</section>-->
+
+		<!-- Footer -->
+			<footer id="footer">
+				<p class="copyright">&copy; <a href="http://er.cs.ucla.edu">ERLab</a> / <a href="http://projectrefocus.com">Project ReFOCUS</a></p>
+			</footer>
+
+		<!-- Scripts -->
+			<script src="{{url_for('static', filename='fractal/assets/js/jquery.min.js')}}"></script>
+			<script src="{{url_for('static', filename='fractal/assets/js/jquery.scrolly.min.js')}}"></script>
+			<script src="{{url_for('static', filename='fractal/assets/js/browser.min.js')}}"></script>
+			<script src="{{url_for('static', filename='fractal/assets/js/breakpoints.min.js')}}"></script>
+			<script src="{{url_for('static', filename='fractal/assets/js/util.js')}}"></script>
+			<script src="{{url_for('static', filename='fractal/assets/js/main.js')}}"></script>
+
+	</body>
+</html>

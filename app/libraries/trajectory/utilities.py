@@ -54,16 +54,16 @@ def get_timespan_partition_for_trajectory(
     end_date = date_parser.parse(end_date).date()
 
     if convert_to_str:
-        partition_timespans = [(str(start_date), str(start_date + step))]
+        partition_timespans = [(str(start_date), str(min(end_date, start_date + step)))]
     else:
-        partition_timespans = [(start_date, start_date + step)]
-        start_date += step
+        partition_timespans = [(start_date, min(end_date, start_date + step))]
+    start_date += step
 
     while start_date < end_date:
         if convert_to_str:
-            partition_timespans += [(str(start_date), str(start_date + step))]
+            partition_timespans += [(str(start_date), str(min(end_date, start_date + step)))]
         else:
-            partition_timespans += [(start_date, start_date + step)]
+            partition_timespans += [(start_date, min(end_date, start_date + step))]
         start_date += step
 
     return partition_timespans

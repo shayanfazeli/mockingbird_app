@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import render_template, Flask
 from configurations import Configurations
 
 # - repositories
@@ -7,7 +7,13 @@ application_directory = os.path.abspath(os.path.dirname(__file__))
 tweets_repo = Configurations.tweets_root
 accounts_df_filepath = Configurations.accounts_df_filepath
 cache_folderpath = Configurations.cache_folderpath
-cache_repo = os.path.abspath(os.path.join(application_directory, '..', 'warehouse/cache'))
+os.makedirs(os.path.join(cache_folderpath, 'trajectory'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'word_clouds'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'word_frequencies'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'lda_visualization'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'text_and_token'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'trends'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'topic_model'), exist_ok=True)
 
 
 def create_app(configuration_class: object = Configurations):
@@ -25,13 +31,14 @@ def create_app(configuration_class: object = Configurations):
     """
     app = Flask(__name__)
     app.config.from_object(configuration_class)
-    # db.init_app(app=app)
-    # migrate.init_app(app=app, db=db)
-    # mail.init_app(app=app)
     from app.blueprints.main import main_blueprint
     app.register_blueprint(main_blueprint)
     from app.blueprints.topic_modeling import topic_modeling_blueprint
     app.register_blueprint(topic_modeling_blueprint)
+    from app.blueprints.word_frequency import word_frequencies_blueprint
+    app.register_blueprint(word_frequencies_blueprint)
+    from app.blueprints.word_cloud import word_clouds_blueprint
+    app.register_blueprint(word_clouds_blueprint)
 
     @app.errorhandler(404)
     def error_404(e):

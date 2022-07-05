@@ -1,7 +1,6 @@
-from typing import Dict
 import os
 from app import create_app, application_directory
-from flask import redirect, send_from_directory
+from flask import send_from_directory
 application = create_app()
 
 
@@ -24,4 +23,4 @@ def make_shell_context():
 
 
 if __name__ == "__main__":
-    application.run()
+    application.run(port=5000, debug=True, host='0.0.0.0')

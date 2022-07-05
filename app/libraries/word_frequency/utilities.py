@@ -3,6 +3,7 @@ import os
 import pickle
 import gzip
 import numpy
+import nltk
 from tqdm import tqdm
 import pyLDAvis
 import torch
@@ -17,40 +18,25 @@ from fame.topic_modeling.cortex.pipeline.bert_lda import TransformerLDATopicMode
 
 from app.libraries.io.tweet_filepaths import get_tweet_filepaths
 from app.libraries.randomization.hashing import dict_hash
-from app.libraries.trajectory.utilities import prepare_trajectory_dataset
+from app.libraries.trajectory.utilities import prepare_trajectory_dataset, get_timespan_partition_for_trajectory
 
 from app import cache_folderpath
 from app.libraries.utilities.logging import get_logger
 logger = get_logger(__name__)
 
 
-def get_topic_modeling_data(
-        support_institutions: List[str],
+def get_word_frequency_data(
         query_institutions: List[str],
-        topic_counts: int,
-        support_min_date: str,
-        support_max_date: str,
         query_step_in_days: int,
         query_min_date: str,
-        query_max_date: str
+        query_max_date: str,
+        query_terms: List[str]
 ) -> Any:
     """
     Parameters
     ----------
-    support_institutions: `List[str]`, required
-        The institutions for building the support set.
-
     query_institutions: `List[str]`, required
-        The institutions for building the query set.
-
-    topic_counts: `int`, required
-        The number of topics to use.
-
-    support_min_date: `str`, required
-        The minimum date to use for the support set.
-
-    support_max_date: `str`, required
-        The maximum date to use for the support set.
+        The institutions to query.
 
     query_step_in_days: `int`, required
         The length of the time-step in days.
@@ -61,35 +47,28 @@ def get_topic_modeling_data(
     query_max_date: `str`, required
         The maximum date to query.
 
+    query_terms: `List[str]`, required
+        The terms to query.
+
     Returns
     -------
-    The topic modeling data.
+    The plotly figure data for the word frequency plot.
     """
     logger.info("1) getting filepaths...")
     tweet_filepaths = get_tweet_filepaths()
-    trajectories = dict(
-        support=dict(
-            state=None,
-            institution_type=support_institutions,
-            dates=(support_min_date, support_max_date, dict(years=10, months=0, days=0))),
-        query=dict(
+    trajectory = dict(
             state=None,
             institution_type=query_institutions,
-            dates=(query_min_date, query_max_date, dict(years=0, months=0, days=query_step_in_days))))
+            dates=(query_min_date, query_max_date, dict(years=0, months=0, days=query_step_in_days)))
 
-    trajectory_hashes = dict(
-        support=dict_hash(dict(
-            tweet_filepaths=tweet_filepaths,
-            trajectory=trajectories['support'],
-        )),
-        query=dict_hash(dict(
-            tweet_filepaths=tweet_filepaths,
-            trajectory=trajectories['query'],
-        )))
+    trajectory_hash = dict_hash(dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectory,
+    ))
 
     # - preparing the topic models based on support
     pipeline_args = dict(
-        number_of_topics_for_lda=topic_counts,
+        number_of_topics_for_lda=2,
                          autoencoder=None,
         representation_clustering=None,
         use_transformer=False,
@@ -125,14 +104,14 @@ def get_topic_modeling_data(
          methods=[
              'keep_alphabetics_only',
              # 'keep_nouns_only',
-             'spell_check_and_typo_fix',
-             'stem_words',
-             'remove_stopwords'
+             # 'spell_check_and_typo_fix',
+             # 'stem_words',
+             # 'remove_stopwords'
          ]
     ))
 
     pipeline_args_to_hash = dict(
-        number_of_topics_for_lda=topic_counts,
+        number_of_topics_for_lda=2,
         autoencoder=None,
         representation_clustering=None,
         use_transformer=False,
@@ -174,14 +153,9 @@ def get_topic_modeling_data(
          ]
     ))
 
-    pipeline_hash = dict_hash(pipeline_args_to_hash)
-    exp_id = f"{pipeline_hash}_{trajectory_hashes['support']}"
-    pipeline_filepath = os.path.join(cache_folderpath, 'topic_model', f"{exp_id}_ckpt.pkl.gz")
-    pipeline_vis_filepath = os.path.join(cache_folderpath, 'lda_visualization', f'{exp_id}.pkl.gz')
-
-    logger.info("2) preparing support trajectory dataset...")
+    logger.info("2) preparing query trajectory dataset...")
     data, meta = prepare_trajectory_dataset(
-        trajectory=trajectories['support'],
+        trajectory=trajectory,
         tweet_filepaths=tweet_filepaths,
         overwrite=False
     )
@@ -192,10 +166,10 @@ def get_topic_modeling_data(
     preprocessed_text_and_tokens_filepath = os.path.join(
         cache_folderpath,
         'text_and_token',
-        f"{trajectory_hashes['support']}-preprocessed_text_and_tokens.pkl.gz"
+        f"{trajectory_hash}-preprocessed_text_and_tokens.pkl.gz"
     )
 
-    logger.info("3) preparing support trajectory data (processing)...")
+    logger.info("3) preparing query trajectory data (processing)...")
     if os.path.exists(preprocessed_text_and_tokens_filepath):
         with gzip.open(preprocessed_text_and_tokens_filepath, 'rb') as handle:
             preprocessed_text_list, preprocessed_tokens_list, indices = pickle.load(handle)
@@ -207,66 +181,34 @@ def get_topic_modeling_data(
         with gzip.open(preprocessed_text_and_tokens_filepath, 'wb') as handle:
             pickle.dump((preprocessed_text_list, preprocessed_tokens_list, indices), handle)
 
-    logger.info("4) fitting support topic model...")
-    if os.path.exists(pipeline_filepath):
-        print(f"loading (already fitted) [exp id: {exp_id}]...")
-        with gzip.open(pipeline_filepath, 'rb') as handle:
-            pipeline = pickle.load(handle)
+    logger.info("4) finding word frequencies...")
 
-        with gzip.open(pipeline_vis_filepath, 'rb') as handle:
-            vis = pickle.load(handle)
+    os.makedirs(os.path.join(cache_folderpath, 'word_frequencies'), exist_ok=True)
+    word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies', f"{trajectory_hash}-word_frequency.pkl.gz")
+    if os.path.exists(word_frequency_filepath):
+        with gzip.open(word_frequency_filepath, 'rb') as handle:
+            word_freqs = pickle.load(handle)
     else:
-        print(f"fitting [exp id: {exp_id}]...")
-        pipeline.prepare_lda_model(
-            tokens_list=preprocessed_tokens_list,
-            lda_worker_count=20)
-        vis = pyLDAvis.gensim_models.prepare(
-            pipeline.lda_model,
-            pipeline.corpus,
-            pipeline.vocabulary,
-            mds='mmds')
-        with gzip.open(pipeline_filepath, 'wb') as handle:
-            pickle.dump(pipeline, handle)
-        with gzip.open(pipeline_vis_filepath, 'wb') as handle:
-            pickle.dump(vis, handle)
-
-    logger.info("5) preparing query trajectory data...")
-    # - computing the topic trajectories
-    data, meta = prepare_trajectory_dataset(
-        trajectory=trajectories['query'],
-        tweet_filepaths=tweet_filepaths,
-        overwrite=False
-    )
-
-    logger.info("6) preparing query trajectory  trends...")
-
-    trajectory_trends_filepath = os.path.join(cache_folderpath, 'trends', f"{trajectory_hashes['query']}_{exp_id}-trends.pkl.gz")
-
-    if os.path.exists(trajectory_trends_filepath):
-        with gzip.open(trajectory_trends_filepath, 'rb') as handle:
-            df, topic_probabilities = pickle.load(handle)
-    else:
-        topic_probabilities = []
-
+        word_freqs = []
         for tmp_query_data in tqdm(data):
             query_preprocessed_text_list, query_preprocessed_tokens_list, query_indices = pipeline.preprocess_and_get_text_and_tokens(
                 text_list=[e for e in tmp_query_data.tweet.tolist() if isinstance(e, str)],
-                verbose=1
+                verbose=0
             )
-            res = pipeline.get_lda_representations(query_preprocessed_tokens_list)
-            topic_probabilities += [res.mean(axis=0)]
+            word_freqs.append(
+                nltk.FreqDist(
+                    [word for tweet_words in [e.split() for e in query_preprocessed_text_list] for word in tweet_words])
+            )
+        with gzip.open(word_frequency_filepath, 'wb') as handle:
+            pickle.dump(word_freqs, handle)
 
-        topic_probabilities = numpy.stack(topic_probabilities, axis=0)
-        df_dict = {f't{i}': topic_probabilities[:, i - 1] for i in range(1, 1 + topic_probabilities.shape[1])}
-        df_dict['x'] = [
-            date_parser.parse(trajectories['query']['dates'][0]).date() + e * relativedelta(**trajectories['query']['dates'][2]) for e
-            in range(df_dict['t1'].shape[0])]
+    df_dict = {'count': [numpy.sum([word_freq[e] for e in query_terms]) for word_freq in word_freqs]}
+    df_dict['x'] = [
+        date_parser.parse(trajectory['dates'][0]).date() + e * relativedelta(**trajectory['dates'][2]) for e
+        in range(len(df_dict['count']))]
 
-        df = pandas.DataFrame(df_dict)
-        with gzip.open(trajectory_trends_filepath, 'wb') as handle:
-            pickle.dump((df, topic_probabilities), handle)
+    df = pandas.DataFrame(df_dict)
+    fig = px.line(df, x='x', y='count', markers=True, template='plotly_white')
+    fig.update_layout(title=f"Word-group occurrence through time: {query_terms}", xaxis_title="Date", yaxis_title="Word Counts",)
 
-    fig = px.line(df, x='x', y=[f't{i}' for i in range(1, 1+topic_probabilities.shape[1])], markers=True,
-                  template='plotly_white')
-    fig.update_layout(title="Topic trajectories through time", xaxis_title="Date", yaxis_title="Topic Probability",)
-    return vis, fig
+    return fig
