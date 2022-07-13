@@ -25,6 +25,120 @@ from app.libraries.utilities.logging import get_logger
 logger = get_logger(__name__)
 
 
+def is_request_processed(
+        query_institutions: List[str],
+        query_step_in_days: int,
+        query_min_date: str,
+        query_max_date: str,
+        query_terms: List[str]
+) -> bool:
+    """
+    Parameters
+    ----------
+    query_institutions: `List[str]`, required
+        The institutions to query.
+
+    query_step_in_days: `int`, required
+        The length of the time-step in days.
+
+    query_min_date: `str`, required
+        The minimum date to query.
+
+    query_max_date: `str`, required
+        The maximum date to query.
+
+    query_terms: `List[str]`, required
+        The terms to query.
+
+    Returns
+    -------
+    Whether or not the request has been processed.
+    """
+    logger.info("1) getting filepaths...")
+    tweet_filepaths = get_tweet_filepaths()
+    trajectory = dict(
+        state=None,
+        institution_type=query_institutions,
+        dates=(query_min_date, query_max_date, dict(years=0, months=0, days=query_step_in_days)))
+
+    trajectory_hash = dict_hash(dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectory,
+    ))
+
+    # - preparing the topic models based on support
+    pipeline_args = dict(
+        number_of_topics_for_lda=2,
+        autoencoder=None,
+        representation_clustering=None,
+        use_transformer=False,
+        use_lda=True,
+        use_tfidf=False,
+        device=torch.device('cpu'),
+        transformer_modelname='paraphrase-mpnet-base-v2',
+        text_processor=TextProcessor(
+            methods=[
+                'remove_url',
+                'convert_to_lowercase',
+                'uppercase_based_missing_delimiter_fix',
+                # 'gtlt_normalize',
+                # 'substitute_more_than_two_letter_repetition_with_one',
+                'non_character_repetition_elimination',
+                # 'use_star_as_delimiter',
+                # 'remove_parantheses_and_their_contents',
+                'remove_questionexlamation_in_brackets',
+                'eliminate_phrase_repetition',
+                'strip'
+            ]
+        ),
+        token_processor_light=TokenProcessor(
+            methods=[
+                'keep_alphabetics_only',
+                # 'keep_nouns_only',
+                # 'spell_check_and_typo_fix',
+                # 'stem_words',
+                # 'remove_stopwords'
+            ]
+        ),
+        token_processor_heavy=TokenProcessor(
+            methods=[
+                'keep_alphabetics_only',
+                # 'keep_nouns_only',
+                # 'spell_check_and_typo_fix',
+                # 'stem_words',
+                # 'remove_stopwords'
+            ]
+        ))
+
+    # - preparing the metadata
+    meta = dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectory
+    )
+
+    # - reading from cache if needed
+    final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
+    if not os.path.exists(final_filename):
+        return False
+
+    preprocessed_text_and_tokens_filepath = os.path.join(
+        cache_folderpath,
+        'text_and_token',
+        f"{trajectory_hash}-preprocessed_text_and_tokens.pkl.gz"
+    )
+
+    logger.info("3) preparing query trajectory data (processing)...")
+    if not os.path.exists(preprocessed_text_and_tokens_filepath):
+        return False
+
+    logger.info("4) checking word frequencies...")
+    word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies',
+                                           f"{trajectory_hash}-word_frequency.pkl.gz")
+    if not os.path.exists(word_frequency_filepath):
+        return False
+    return True
+
+
 def get_word_frequency_data(
         query_institutions: List[str],
         query_step_in_days: int,

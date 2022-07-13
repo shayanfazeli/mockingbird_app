@@ -79,6 +79,111 @@ def plotly_wordcloud(text, max_words):
     return fig
 
 
+def is_request_processed(query_institutions: List[str],
+        query_step_in_days: int,
+        query_min_date: str,
+        query_max_date: str,
+        max_word_count: int) -> bool:
+    """
+    Parameters
+    ----------
+    query_institutions: `List[str]`, required
+        The institutions to query
+
+    query_step_in_days: `int`, required
+        The step in days to query
+
+    query_min_date: `str`, required
+        The minimum date to query
+
+    query_max_date: `str`, required
+        The maximum date to query
+
+    max_word_count: `int`, required
+        The maximum number of words to include in the word cloud
+
+    Returns
+    -------
+    whether the request is already processed
+    """
+    logger.info("1) getting filepaths...")
+    tweet_filepaths = get_tweet_filepaths()
+    trajectory = dict(
+        state=None,
+        institution_type=query_institutions,
+        dates=(query_min_date, query_max_date, dict(years=0, months=0, days=query_step_in_days)))
+
+    timespans = [f'{e[0]} -> {e[1]}' for e in get_timespan_partition_for_trajectory(trajectory)]
+
+    trajectory_hash = dict_hash(dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectory,
+    ))
+
+    # - preparing the topic models based on support
+    pipeline_args = dict(
+        number_of_topics_for_lda=2,
+        autoencoder=None,
+        representation_clustering=None,
+        use_transformer=False,
+        use_lda=True,
+        use_tfidf=False,
+        device=torch.device('cpu'),
+        transformer_modelname='paraphrase-mpnet-base-v2',
+        text_processor=TextProcessor(
+            methods=[
+                'remove_url',
+                'convert_to_lowercase',
+                'uppercase_based_missing_delimiter_fix',
+                # 'gtlt_normalize',
+                # 'substitute_more_than_two_letter_repetition_with_one',
+                'non_character_repetition_elimination',
+                # 'use_star_as_delimiter',
+                # 'remove_parantheses_and_their_contents',
+                'remove_questionexlamation_in_brackets',
+                'eliminate_phrase_repetition',
+                'strip'
+            ]
+        ),
+        token_processor_light=TokenProcessor(
+            methods=[
+                'keep_alphabetics_only',
+                # 'keep_nouns_only',
+                # 'spell_check_and_typo_fix',
+                # 'stem_words',
+                # 'remove_stopwords'
+            ]
+        ),
+        token_processor_heavy=TokenProcessor(
+            methods=[
+                'keep_alphabetics_only',
+                # 'keep_nouns_only',
+                # 'spell_check_and_typo_fix',
+                # 'stem_words',
+                # 'remove_stopwords'
+            ]
+        ))
+
+    logger.info("2) preparing query trajectory dataset...")
+    # - preparing the metadata
+    meta = dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectory
+    )
+
+    # - reading from cache if needed
+    final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
+    if not os.path.exists(final_filename):
+        return False
+
+    logger.info("3) finding word clouds...")
+    word_clouds_filepath = os.path.join(cache_folderpath, 'word_clouds', f"{trajectory_hash}-word_clouds.pkl.gz")
+    if not os.path.exists(word_clouds_filepath):
+        return False
+
+    return True
+
+
 def get_word_cloud_data(
         query_institutions: List[str],
         query_step_in_days: int,

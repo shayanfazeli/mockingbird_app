@@ -24,6 +24,208 @@ from app.libraries.utilities.logging import get_logger
 logger = get_logger(__name__)
 
 
+def is_request_processed(
+        support_institutions: List[str],
+        query_institutions: List[str],
+        topic_counts: int,
+        support_min_date: str,
+        support_max_date: str,
+        query_step_in_days: int,
+        query_min_date: str,
+        query_max_date: str
+) -> bool:
+    """
+    Parameters
+    ----------
+    support_institutions: `List[str]`, required
+        The institutions for building the support set.
+
+    query_institutions: `List[str]`, required
+        The institutions for building the query set.
+
+    topic_counts: `int`, required
+        The number of topics to use.
+
+    support_min_date: `str`, required
+        The minimum date to use for the support set.
+
+    support_max_date: `str`, required
+        The maximum date to use for the support set.
+
+    query_step_in_days: `int`, required
+        The length of the time-step in days.
+
+    query_min_date: `str`, required
+        The minimum date to query.
+
+    query_max_date: `str`, required
+        The maximum date to query.
+
+    Returns
+    -------
+    The topic modeling data.
+    """
+    logger.info("1) getting filepaths...")
+    tweet_filepaths = get_tweet_filepaths()
+    trajectories = dict(
+        support=dict(
+            state=None,
+            institution_type=support_institutions,
+            dates=(support_min_date, support_max_date, dict(years=10, months=0, days=0))),
+        query=dict(
+            state=None,
+            institution_type=query_institutions,
+            dates=(query_min_date, query_max_date, dict(years=0, months=0, days=query_step_in_days))))
+
+    trajectory_hashes = dict(
+        support=dict_hash(dict(
+            tweet_filepaths=tweet_filepaths,
+            trajectory=trajectories['support'],
+        )),
+        query=dict_hash(dict(
+            tweet_filepaths=tweet_filepaths,
+            trajectory=trajectories['query'],
+        )))
+
+    # - preparing the topic models based on support
+    pipeline_args = dict(
+        number_of_topics_for_lda=topic_counts,
+                         autoencoder=None,
+        representation_clustering=None,
+        use_transformer=False,
+        use_lda=True,
+        use_tfidf=False,
+        device=torch.device('cpu'),
+        transformer_modelname='paraphrase-mpnet-base-v2',
+        text_processor=TextProcessor(
+         methods=[
+             'remove_url',
+             'convert_to_lowercase',
+             'uppercase_based_missing_delimiter_fix',
+             # 'gtlt_normalize',
+             # 'substitute_more_than_two_letter_repetition_with_one',
+             'non_character_repetition_elimination',
+             # 'use_star_as_delimiter',
+             # 'remove_parantheses_and_their_contents',
+             'remove_questionexlamation_in_brackets',
+             'eliminate_phrase_repetition',
+             'strip'
+         ]
+        ),
+        token_processor_light=TokenProcessor(
+         methods=[
+             'keep_alphabetics_only',
+             # 'keep_nouns_only',
+             # 'spell_check_and_typo_fix',
+             # 'stem_words',
+             # 'remove_stopwords'
+         ]
+        ),
+        token_processor_heavy=TokenProcessor(
+         methods=[
+             'keep_alphabetics_only',
+             # 'keep_nouns_only',
+             'spell_check_and_typo_fix',
+             'stem_words',
+             'remove_stopwords'
+         ]
+    ))
+
+    pipeline_args_to_hash = dict(
+        number_of_topics_for_lda=topic_counts,
+        autoencoder=None,
+        representation_clustering=None,
+        use_transformer=False,
+        use_lda=True,
+        use_tfidf=False,
+        device='cpu',
+        transformer_modelname='paraphrase-mpnet-base-v2',
+        text_processor=dict(
+         methods=[
+             'remove_url',
+             'convert_to_lowercase',
+             'uppercase_based_missing_delimiter_fix',
+             # 'gtlt_normalize',
+             # 'substitute_more_than_two_letter_repetition_with_one',
+             'non_character_repetition_elimination',
+             # 'use_star_as_delimiter',
+             # 'remove_parantheses_and_their_contents',
+             'remove_questionexlamation_in_brackets',
+             'eliminate_phrase_repetition',
+             'strip'
+         ]
+        ),
+        token_processor_light=dict(
+         methods=[
+             'keep_alphabetics_only',
+             # 'keep_nouns_only',
+             # 'spell_check_and_typo_fix',
+             # 'stem_words',
+             # 'remove_stopwords'
+         ]
+        ),
+        token_processor_heavy=dict(
+         methods=[
+             'keep_alphabetics_only',
+             # 'keep_nouns_only',
+             'spell_check_and_typo_fix',
+             'stem_words',
+             'remove_stopwords'
+         ]
+    ))
+
+    pipeline_hash = dict_hash(pipeline_args_to_hash)
+    exp_id = f"{pipeline_hash}_{trajectory_hashes['support']}"
+    pipeline_filepath = os.path.join(cache_folderpath, 'topic_model', f"{exp_id}_ckpt.pkl.gz")
+    pipeline_vis_filepath = os.path.join(cache_folderpath, 'lda_visualization', f'{exp_id}.pkl.gz')
+
+    logger.info("2) preparing support trajectory dataset...")
+
+    meta = dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectories['support']
+    )
+    # - reading from cache if needed
+    final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
+    if not os.path.exists(final_filename):
+        return False
+
+    meta = dict(
+        tweet_filepaths=tweet_filepaths,
+        trajectory=trajectories['query']
+    )
+    # - reading from cache if needed
+    final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
+    if not os.path.exists(final_filename):
+        return False
+
+    pipeline = TransformerLDATopicModelingPipeline(
+        **pipeline_args
+    )
+    preprocessed_text_and_tokens_filepath = os.path.join(
+        cache_folderpath,
+        'text_and_token',
+        f"{trajectory_hashes['support']}-preprocessed_text_and_tokens.pkl.gz"
+    )
+
+    logger.info("3) preparing support trajectory data (processing)...")
+    if not os.path.exists(preprocessed_text_and_tokens_filepath):
+        return False
+
+    logger.info("4) fitting support topic model...")
+    if not os.path.exists(pipeline_filepath):
+        return False
+
+    logger.info("6) preparing query trajectory  trends...")
+
+    trajectory_trends_filepath = os.path.join(cache_folderpath, 'trends', f"{trajectory_hashes['query']}_{exp_id}-trends.pkl.gz")
+
+    if not os.path.exists(trajectory_trends_filepath):
+        return False
+
+    return True
+
+
 def get_topic_modeling_data(
         support_institutions: List[str],
         query_institutions: List[str],

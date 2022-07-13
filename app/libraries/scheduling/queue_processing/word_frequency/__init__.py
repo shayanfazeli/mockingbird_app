@@ -1,0 +1,1 @@
+from .processor import word_frequency_request_processor

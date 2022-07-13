@@ -1,7 +1,15 @@
 import os
-from app import create_app, application_directory
+from app import create_app, application_directory, scheduler, mail
 from flask import send_from_directory
+from flask_mail import Message
+from flask_apscheduler import APScheduler
+
+from app.libraries.scheduling.queue_processing import word_cloud_request_processor, \
+    word_frequency_request_processor, \
+    topic_modeling_request_processor
+
 application = create_app()
+scheduler.start()
 
 
 @application.route('/favicon.ico')

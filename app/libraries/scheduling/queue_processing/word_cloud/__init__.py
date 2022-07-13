@@ -1,0 +1,1 @@
+from .processor import word_cloud_request_processor

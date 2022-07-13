@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mockingbird</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="{{url_for('static', filename='images/form/icons/favicon.ico')}}"/>
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='fonts/form/font-awesome-4.7.0/css/font-awesome.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='vendor/animate/animate.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='vendor/css-hamburgers/hamburgers.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='vendor/select2/select2.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/form/util.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/form/main.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layouts/blog.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layouts/grapher.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/grapher.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/d3_grapher.js') }}"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300" rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+
+    <!--===============================================================================================-->
+</head>
+<body>
+
+<div class="bg-contact2" style="background-image: url('{{ url_for('static', filename='images/form/green_hearts.jpg') }}');">
+    <div class="container-contact2">
+<div class="wrap-contact2" style="width: 1500px">
+<!--            <form class="contact2-form validate-form">-->
+					<span class="contact2-form-title">
+						Success
+					</span>
+
+                <div>
+                                <div class="post-description">
+                </div>
+                <div class="post-description">
+                    <div class="post-description">
+                        <p>
+                            Your request has been submitted.
+                        </p>
+                        {% if email_provided %}
+                        <p>
+                            Once your request is processed, you will receive an email notification.
+                            You can then re-enter the desired parameters and observe the results.
+                        </p>
+                        {% else %}
+                        <p>
+                            Please check back later to see the results of your request.
+                            You can then re-enter the desired parameters and observe the results.
+                        </p>
+                        {% endif %}
+                </div>
+
+                    <div class="modal"><p>Submitting...</p></div>
+                </div>
+            {% if not data == {} %}
+<!--        <div class="wrap-contact2">-->
+		<div class="radarChart"></div>
+<!--            </div>-->
+		{% endif %}
+<!--            </form>-->
+        </div>
+
+
+
+    </div>
+
+    </div>
+
+</div>
+
+
+
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/jquery/jquery-3.2.1.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/bootstrap/js/popper.js')}}"></script>
+<script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/select2/select2.min.js')}}"></script>
+<!--===============================================================================================-->
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-23581568-13"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'UA-23581568-13');
+</script>
+
+</body>
+</html>

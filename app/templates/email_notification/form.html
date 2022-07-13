@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mockingbird: Email Notification</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="{{url_for('static', filename='images/form/icons/favicon.ico')}}"/>
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='fonts/form/font-awesome-4.7.0/css/font-awesome.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='vendor/animate/animate.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+          href="{{url_for('static', filename='vendor/css-hamburgers/hamburgers.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='vendor/select2/select2.min.css')}}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/form/util.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/form/main.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layouts/blog.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layouts/grapher.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/grapher.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/d3_grapher.js') }}"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300" rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+
+    <!--===============================================================================================-->
+</head>
+<body>
+
+<div class="bg-contact2" style="background-image: url('{{ url_for('static', filename='images/form/green_hearts.jpg') }}');">
+    <div class="container-contact2">
+<div class="wrap-contact2" style="width: 1500px">
+<!--            <form class="contact2-form validate-form">-->
+					<span class="contact2-form-title">
+						Email Notification
+					</span>
+
+                <div>
+                                <div class="post-description">
+                </div>
+                    <div class="post-description">
+                        <p>Thank you! Your request is now in our processing queue.</p>
+                        <p>If you would like to receive a notification upon the
+                    completion of your request by Mockingbird, please enter an email in the form below:</p></div>
+                <div class="post-description">
+                    <div class="post-description">
+                        <form action="" method="post" id="submission_form" onsubmit="$('.modal').show();" novalidate>
+                            {{ form.hidden_tag() }}
+                            <p>
+                                {{ form.email.label }}<br>
+                                <div class="wrap-input2 validate-input" data-validate="Text is required">
+                                    {{ form.email(class_="input2") }}<span class="focus-input2"
+                                                                                data-placeholder=""></span>
+                                </div>
+
+                                <br>
+                                {% for error in form.email.errors %}
+                                <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </p>
+                            <p>{{ form.submit(type="submit", class="contact2-form-btn", style="height: 10px, width: 10px") }}</p>
+                        </form>
+                </div>
+
+                    <div class="modal"><p>Processing...</p></div>
+                </div>
+            {% if not data == {} %}
+<!--        <div class="wrap-contact2">-->
+		<div class="radarChart"></div>
+<!--            </div>-->
+		{% endif %}
+<!--            </form>-->
+        </div>
+
+
+
+    </div>
+
+    </div>
+
+</div>
+
+
+
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/jquery/jquery-3.2.1.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/bootstrap/js/popper.js')}}"></script>
+<script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='vendor/select2/select2.min.js')}}"></script>
+<!--===============================================================================================-->
+<script src="{{url_for('static', filename='js/forms/main.js')}}"></script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-23581568-13"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'UA-23581568-13');
+</script>
+
+</body>
+</html>

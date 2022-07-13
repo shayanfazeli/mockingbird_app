@@ -1,6 +1,10 @@
 import os
 from flask import render_template, Flask
+from flask_mail import Mail
 from configurations import Configurations
+from flask_apscheduler import APScheduler
+scheduler = APScheduler()
+mail = Mail()
 
 # - repositories
 application_directory = os.path.abspath(os.path.dirname(__file__))
@@ -14,6 +18,9 @@ os.makedirs(os.path.join(cache_folderpath, 'lda_visualization'), exist_ok=True)
 os.makedirs(os.path.join(cache_folderpath, 'text_and_token'), exist_ok=True)
 os.makedirs(os.path.join(cache_folderpath, 'trends'), exist_ok=True)
 os.makedirs(os.path.join(cache_folderpath, 'topic_model'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'requests'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'requests/args'), exist_ok=True)
+os.makedirs(os.path.join(cache_folderpath, 'requests/emails'), exist_ok=True)
 
 
 def create_app(configuration_class: object = Configurations):
@@ -39,6 +46,8 @@ def create_app(configuration_class: object = Configurations):
     app.register_blueprint(word_frequencies_blueprint)
     from app.blueprints.word_cloud import word_clouds_blueprint
     app.register_blueprint(word_clouds_blueprint)
+    from app.blueprints.email_notification import email_notification_blueprint
+    app.register_blueprint(email_notification_blueprint)
 
     @app.errorhandler(404)
     def error_404(e):
@@ -63,4 +72,6 @@ def create_app(configuration_class: object = Configurations):
         return render_template('errors/error.html', error_code=500,
                                error_message="Request Timeout"), 504
 
+    scheduler.init_app(app)
+    mail.init_app(app)
     return app
