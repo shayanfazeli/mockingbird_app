@@ -4,9 +4,13 @@ import os
 
 from app.libraries.io.read_write import read_pkl_gz
 from app.libraries.word_frequency.utilities import get_word_frequency_data
+from app.libraries.utilities.logging import get_logger
+from app import create_app
+application = create_app()
+logger = get_logger(__name__)
 
 
-@scheduler.task('interval', id='word_frequency_request_processor', seconds=15, misfire_grace_time=600)
+@scheduler.task('interval', id='word_frequency_request_processor', seconds=15, misfire_grace_time=None, max_instances=1)
 def word_frequency_request_processor():
     repo_requests = os.path.join(cache_folderpath, 'requests', 'args')
     active_requests = [f for f in os.listdir(repo_requests) if f.endswith('.pkl.gz') and f.startswith('word_frequency_')]
@@ -33,12 +37,13 @@ def word_frequency_request_processor():
             
                             Args: {args}
                             """
-                        from application import application
+                        logger.info("before this import.")
                         with application.app_context():
                             mail.send(msg)
+                            logger.info("email sent.")
                     os.system(f"rm {os.path.join(cache_folderpath, 'requests', 'emails', request_filename)}")
                 os.system(f'rm {os.path.join(repo_requests, request_filename)}')
             except Exception as e:
-                print(e)
+                logger.warning(f"EXCEPTION OCCURRED -> details:\n\t->[{e}]\n\n")
 
         scheduler.resume()

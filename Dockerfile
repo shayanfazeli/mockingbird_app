@@ -17,6 +17,7 @@ RUN apt-get install -y git
 RUN git clone https://github.com/shayanfazeli/fame.git
 RUN pip3 install --upgrade pip
 RUN pip3 install -e ./fame
+RUN pip3 install git+https://github.com/agronholm/apscheduler.git
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt

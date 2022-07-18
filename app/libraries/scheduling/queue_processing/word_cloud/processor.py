@@ -4,6 +4,8 @@ import os
 
 from app.libraries.io.read_write import read_pkl_gz
 from app.libraries.word_clouds.utilities import get_word_cloud_data
+from app import create_app
+application = create_app()
 
 
 @scheduler.task('interval', id='word_cloud_request_processor', seconds=15, misfire_grace_time=600)
@@ -33,7 +35,6 @@ def word_cloud_request_processor():
             
                             Args: {args}
                             """
-                        from application import application
                         with application.app_context():
                             mail.send(msg)
                     os.system(f"rm {os.path.join(cache_folderpath, 'requests', 'emails', request_filename)}")

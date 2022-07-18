@@ -316,6 +316,7 @@ def get_word_frequency_data(
         with gzip.open(word_frequency_filepath, 'wb') as handle:
             pickle.dump(word_freqs, handle)
 
+    logger.info("5) all done, preparing plotting info.")
     df_dict = {'count': [numpy.sum([word_freq[e] for e in query_terms]) for word_freq in word_freqs]}
     df_dict['x'] = [
         date_parser.parse(trajectory['dates'][0]).date() + e * relativedelta(**trajectory['dates'][2]) for e

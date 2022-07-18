@@ -3,6 +3,8 @@ from flask_mail import Message
 import os
 from app.libraries.io.read_write import read_pkl_gz
 from app.libraries.topic_modeling.utilities import get_topic_modeling_data
+from app import create_app
+application = create_app()
 
 
 @scheduler.task('interval', id='topic_modeling_request_processor', seconds=15, misfire_grace_time=600)
@@ -32,7 +34,6 @@ def topic_modeling_request_processor():
             
                             Args: {args}
                             """
-                        from application import application
                         with application.app_context():
                             mail.send(msg)
                     os.system(f"rm {os.path.join(cache_folderpath, 'requests', 'emails', request_filename)}")
