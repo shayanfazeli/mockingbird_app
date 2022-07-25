@@ -180,6 +180,24 @@ def get_word_frequency_data(
         trajectory=trajectory,
     ))
 
+    word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies',
+                                           f"{trajectory_hash}-word_frequency.pkl.gz")
+    if os.path.exists(word_frequency_filepath):
+        with gzip.open(word_frequency_filepath, 'rb') as handle:
+            word_freqs = pickle.load(handle)
+        logger.info("2) processings are done already, preparing plotting info...")
+        df_dict = {'count': [numpy.sum([word_freq[e] for e in query_terms]) for word_freq in word_freqs]}
+        df_dict['x'] = [
+            date_parser.parse(trajectory['dates'][0]).date() + e * relativedelta(**trajectory['dates'][2]) for e
+            in range(len(df_dict['count']))]
+
+        df = pandas.DataFrame(df_dict)
+        fig = px.line(df, x='x', y='count', markers=True, template='plotly_white')
+        fig.update_layout(title=f"Word-group occurrence through time: {query_terms}", xaxis_title="Date",
+                          yaxis_title="Word Counts", )
+
+        return fig
+
     # - preparing the topic models based on support
     pipeline_args = dict(
         number_of_topics_for_lda=2,
@@ -298,23 +316,26 @@ def get_word_frequency_data(
     logger.info("4) finding word frequencies...")
 
     os.makedirs(os.path.join(cache_folderpath, 'word_frequencies'), exist_ok=True)
-    word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies', f"{trajectory_hash}-word_frequency.pkl.gz")
-    if os.path.exists(word_frequency_filepath):
-        with gzip.open(word_frequency_filepath, 'rb') as handle:
-            word_freqs = pickle.load(handle)
-    else:
-        word_freqs = []
-        for tmp_query_data in tqdm(data):
-            query_preprocessed_text_list, query_preprocessed_tokens_list, query_indices = pipeline.preprocess_and_get_text_and_tokens(
-                text_list=[e for e in tmp_query_data.tweet.tolist() if isinstance(e, str)],
-                verbose=0
-            )
-            word_freqs.append(
-                nltk.FreqDist(
-                    [word for tweet_words in [e.split() for e in query_preprocessed_text_list] for word in tweet_words])
-            )
-        with gzip.open(word_frequency_filepath, 'wb') as handle:
-            pickle.dump(word_freqs, handle)
+    # word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies', f"{trajectory_hash}-word_frequency.pkl.gz")
+    # if os.path.exists(word_frequency_filepath):
+    #     with gzip.open(word_frequency_filepath, 'rb') as handle:
+    #         word_freqs = pickle.load(handle)
+    # else:
+    word_freqs = []
+    for tmp_query_data in tqdm(data):
+        query_preprocessed_text_list, query_preprocessed_tokens_list, query_indices = pipeline.preprocess_and_get_text_and_tokens(
+            text_list=[e for e in tmp_query_data.tweet.tolist() if isinstance(e, str)],
+            verbose=0
+        )
+
+        if len(query_preprocessed_text_list) == 0:
+            query_preprocessed_text_list = ['none']
+        word_freqs.append(
+            nltk.FreqDist(
+                [word for tweet_words in [e.split() for e in query_preprocessed_text_list] for word in tweet_words])
+        )
+    with gzip.open(word_frequency_filepath, 'wb') as handle:
+        pickle.dump(word_freqs, handle)
 
     logger.info("5) all done, preparing plotting info.")
     df_dict = {'count': [numpy.sum([word_freq[e] for e in query_terms]) for word_freq in word_freqs]}
