@@ -227,6 +227,12 @@ def get_word_cloud_data(
         trajectory=trajectory,
     ))
 
+    word_clouds_filepath = os.path.join(cache_folderpath, 'word_clouds', f"{trajectory_hash}-word_clouds.pkl.gz")
+    if os.path.exists(word_clouds_filepath):
+        with gzip.open(word_clouds_filepath, 'rb') as handle:
+            word_clouds = pickle.load(handle)
+        return word_clouds, timespans
+
     # - preparing the topic models based on support
     pipeline_args = dict(
         number_of_topics_for_lda=2,
@@ -284,20 +290,25 @@ def get_word_cloud_data(
 
     logger.info("3) finding word clouds...")
     word_clouds_filepath = os.path.join(cache_folderpath, 'word_clouds', f"{trajectory_hash}-word_clouds.pkl.gz")
-    if os.path.exists(word_clouds_filepath):
-        with gzip.open(word_clouds_filepath, 'rb') as handle:
-            word_clouds = pickle.load(handle)
-    else:
-        word_clouds = []
-        for tmp_query_data in tqdm(data):
-            query_preprocessed_text_list, query_preprocessed_tokens_list, query_indices = pipeline.preprocess_and_get_text_and_tokens(
-                text_list=[e for e in tmp_query_data.tweet.tolist() if isinstance(e, str)],
-                verbose=0
+    # if os.path.exists(word_clouds_filepath):
+    #     with gzip.open(word_clouds_filepath, 'rb') as handle:
+    #         word_clouds = pickle.load(handle)
+    # else:
+    word_clouds = []
+    for tmp_query_data in tqdm(data):
+        query_preprocessed_text_list, query_preprocessed_tokens_list, query_indices = pipeline.preprocess_and_get_text_and_tokens(
+            text_list=[e for e in tmp_query_data.tweet.tolist() if isinstance(e, str)],
+            verbose=0
+        )
+        if len(query_preprocessed_text_list) == 0:
+            word_clouds.append(
+                plotly_wordcloud(' '.join(['NONE']), max_words=max_word_count)
             )
+        else:
             word_clouds.append(
                 plotly_wordcloud(' '.join(query_preprocessed_text_list), max_words=max_word_count)
             )
-        with gzip.open(word_clouds_filepath, 'wb') as handle:
-            pickle.dump(word_clouds, handle)
+    with gzip.open(word_clouds_filepath, 'wb') as handle:
+        pickle.dump(word_clouds, handle)
 
     return word_clouds, timespans
