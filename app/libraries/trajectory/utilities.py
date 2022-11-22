@@ -22,6 +22,9 @@ from app.libraries.io.accounts_dataframe import read_accounts_df
 from app.libraries.io.tweet_filepaths import get_tweet_filepaths
 from app.libraries.randomization.hashing import dict_hash
 from app import cache_folderpath
+from app.libraries.utilities.logging import get_logger
+from app.libraries.io.read_write import write_pkl_gz, read_pkl_gz
+logger = get_logger(__name__)
 
 
 def get_timespan_partition_for_trajectory(
@@ -166,9 +169,11 @@ def prepare_trajectory_dataset(
     # - reading from cache if needed
     final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
     if os.path.exists(final_filename) and not overwrite:
-        with gzip.open(final_filename, 'rb') as handle:
-            data_dict = pickle.load(handle)
+        try:
+            data_dict = read_pkl_gz(final_filename)
             return data_dict['data'], data_dict['meta']
+        except Exception as e:
+            logger.error(f"failed to load the  file located in {final_filename} - error: {e}")
 
     # - filtering the allowed accounts
     allowed_handles = [e.lower() for e in get_filtered_twitter_handles(trajectory=trajectory)]
@@ -178,7 +183,7 @@ def prepare_trajectory_dataset(
     for tweet_filepath in tweet_filepaths:
         if os.path.basename(tweet_filepath)[:-4].lower() not in allowed_handles:
             continue
-        tmp_df = pandas.read_csv(tweet_filepath, on_bad_lines='skip', delimiter='\t')
+        tmp_df = pandas.read_csv(tweet_filepath, on_bad_lines='skip', delimiter='\t', low_memory=False)
         outputs += [filter_per_trajectory(tmp_df, trajectory)]
 
     # - concatenating the results across the time-segment
@@ -187,7 +192,10 @@ def prepare_trajectory_dataset(
         results += [pandas.concat([e for e in zip(*outputs)][i], axis=0)]
 
     # - caching the result
-    with gzip.open(final_filename, 'wb') as handle:
-        pickle.dump(dict(meta=meta, data=results), handle)
+    try:
+        write_pkl_gz(dict(meta=meta, data=results), final_filename)
+    except Exception as e:
+        logger.error(f"failed to write the trajectory data file to {final_filename} - error: {e} => deleting it for now.")
+        os.system(f'rm {final_filename}')
 
     return results, meta

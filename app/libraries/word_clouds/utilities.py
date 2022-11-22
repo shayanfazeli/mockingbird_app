@@ -173,8 +173,8 @@ def is_request_processed(query_institutions: List[str],
 
     # - reading from cache if needed
     final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
-    if not os.path.exists(final_filename):
-        return False
+    # if not os.path.exists(final_filename):
+    #     return False
 
     logger.info("3) finding word clouds...")
     word_clouds_filepath = os.path.join(cache_folderpath, 'word_clouds', f"{trajectory_hash}-word_clouds.pkl.gz")
@@ -229,9 +229,12 @@ def get_word_cloud_data(
 
     word_clouds_filepath = os.path.join(cache_folderpath, 'word_clouds', f"{trajectory_hash}-word_clouds.pkl.gz")
     if os.path.exists(word_clouds_filepath):
-        with gzip.open(word_clouds_filepath, 'rb') as handle:
-            word_clouds = pickle.load(handle)
-        return word_clouds, timespans
+        try:
+            with gzip.open(word_clouds_filepath, 'rb') as handle:
+                word_clouds = pickle.load(handle)
+            return word_clouds, timespans
+        except Exception as e:
+            logger.error(f"failed to load the file located in {word_clouds_filepath}, re-creating it...\n\t error: {e}")
 
     # - preparing the topic models based on support
     pipeline_args = dict(

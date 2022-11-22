@@ -3,11 +3,11 @@ Flask-Email==1.4.4
 Flask-Mail==0.9.1
 Flask-WTF==1.0.1
 gensim==4.2.0
-ipython==8.4.0
+ipython==7.34.0
 language-detector==5.0.2
 matplotlib==3.5.2
 nltk==3.7
-numpy==1.22.3
+numpy==1.21.6
 pandas==1.4.2
 plotly==5.9.0
 plotly-express==0.4.1

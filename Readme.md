@@ -40,13 +40,20 @@ Now, to finalize the dockerization follow the steps below:
 * Create the image: `docker build --tag mockingbird .`
   * (if you want to delete an image, you can run `docker image rm image_name`)
 * Create the volume: `docker volume create --driver local --name volume_name --opt device=path_to_folder_on_host --opt o=uid=root,gid=root --opt o=bind --opt type=none`
-* Run the image: `docker run -v refocus_drive:/container/warehouse -d -p 5000:5000 mockingbird`
+* Run the image: `docker run -v refocus_drive2:/container/warehouse -d -p 5000:5000 mockingbird`
 
-__Remark__: You can use `docker system prune -a` to clean the unused images, etc.
 
-docker image rm mockingbird --force; docker build --tag mockingbird .; docker run -v refocus_drive:/container/warehouse -d -p 5000:5000 mockingbird
 
+```bash
+docker volume create --driver local --name refocus_drive2 --opt device=/Users/mednet_machine/data/refocus/ --opt o=uid=root,gid=root --opt o=bind --opt type=none
+```
+
+
+__Remark__: You can use `docker system prune -a` to clean the unused images:
+```bash
+docker image rm mockingbird --force; docker build --tag mockingbird .; docker run -v refocus_drive2:/container/warehouse -d -p 5000:5000 mockingbird --net="host"
 docker system prune -a
+```
 
 ## Data
 ### Details

@@ -118,8 +118,8 @@ def is_request_processed(
 
     # - reading from cache if needed
     final_filename = os.path.join(cache_folderpath, 'trajectory', dict_hash(meta) + '.pkl.gz')
-    if not os.path.exists(final_filename):
-        return False
+    # if not os.path.exists(final_filename):
+    #     return False
 
     preprocessed_text_and_tokens_filepath = os.path.join(
         cache_folderpath,
@@ -128,8 +128,8 @@ def is_request_processed(
     )
 
     logger.info("3) preparing query trajectory data (processing)...")
-    if not os.path.exists(preprocessed_text_and_tokens_filepath):
-        return False
+    # if not os.path.exists(preprocessed_text_and_tokens_filepath):
+    #     return False
 
     logger.info("4) checking word frequencies...")
     word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies',
@@ -183,20 +183,23 @@ def get_word_frequency_data(
     word_frequency_filepath = os.path.join(cache_folderpath, 'word_frequencies',
                                            f"{trajectory_hash}-word_frequency.pkl.gz")
     if os.path.exists(word_frequency_filepath):
-        with gzip.open(word_frequency_filepath, 'rb') as handle:
-            word_freqs = pickle.load(handle)
-        logger.info("2) processings are done already, preparing plotting info...")
-        df_dict = {'count': [numpy.sum([word_freq[e] for e in query_terms]) for word_freq in word_freqs]}
-        df_dict['x'] = [
-            date_parser.parse(trajectory['dates'][0]).date() + e * relativedelta(**trajectory['dates'][2]) for e
-            in range(len(df_dict['count']))]
+        try:
+            with gzip.open(word_frequency_filepath, 'rb') as handle:
+                word_freqs = pickle.load(handle)
+            logger.info("2) processings are done already, preparing plotting info...")
+            df_dict = {'count': [numpy.sum([word_freq[e] for e in query_terms]) for word_freq in word_freqs]}
+            df_dict['x'] = [
+                date_parser.parse(trajectory['dates'][0]).date() + e * relativedelta(**trajectory['dates'][2]) for e
+                in range(len(df_dict['count']))]
 
-        df = pandas.DataFrame(df_dict)
-        fig = px.line(df, x='x', y='count', markers=True, template='plotly_white')
-        fig.update_layout(title=f"Word-group occurrence through time: {query_terms}", xaxis_title="Date",
-                          yaxis_title="Word Counts", )
+            df = pandas.DataFrame(df_dict)
+            fig = px.line(df, x='x', y='count', markers=True, template='plotly_white')
+            fig.update_layout(title=f"Word-group occurrence through time: {query_terms}", xaxis_title="Date",
+                              yaxis_title="Word Counts", )
 
-        return fig
+            return fig
+        except Exception as e:
+            logger.error(f"failed to load the file located in {word_frequency_filepath}, re-creating it...\n\terror: {e}")
 
     # - preparing the topic models based on support
     pipeline_args = dict(
@@ -330,10 +333,14 @@ def get_word_frequency_data(
 
         if len(query_preprocessed_text_list) == 0:
             query_preprocessed_text_list = ['none']
-        word_freqs.append(
-            nltk.FreqDist(
-                [word for tweet_words in [e.split() for e in query_preprocessed_text_list] for word in tweet_words])
-        )
+        try:
+            word_freqs.append(
+                nltk.FreqDist(
+                    [word for tweet_words in [e.split() for e in query_preprocessed_text_list] for word in tweet_words])
+            )
+        except:
+            import pdb
+            pdb.set_trace()
     with gzip.open(word_frequency_filepath, 'wb') as handle:
         pickle.dump(word_freqs, handle)
 
