@@ -1,15 +1,13 @@
 # MOCKINGBIRD
-
 *A subproject of [Project ReFOCUS](www.projectrefocus.com) and OLIVIA*
-
 
 ## Getting started
 This software library is fully dockerized therefore you can follow the easy steps below to get started:
 
-
 ### 1. Prepring files and folders
 Modify the `.env` file to the following:
-* `ACCOUNTS_DF_FILEPATH`: the path to the `accounts.csv` which contains the twitter accounts used in this system.
+* `ACCOUNTS_DF_FILEPATH`: the path to the `accounts.csv` which contains the twitter accounts used in this system (as `institution_list_1`).
+  * One can update it accordingly to include other lists as well. For instance, we also gather data from NACCHO's directory of local public health departments.
 * `TWEETS_ROOT`: the root repository of the dataset. Please note that, when you fetch the data, it gets stored as
 `twitter_handle.csv` in each of its subfolders.
 * `CACHE_FOLDERPATH`: an empty folder (or previously prepared folder) for cache.
@@ -25,12 +23,15 @@ Second, create a folder in your machine containing the following structure:
 
 ```
 - accounts.csv
-- tweets/folder1/CNN.csv
-- tweets/folder2/CNN.csv
+- tweets/group/folder1/CNN.csv
+- tweets/group/folder2/CNN.csv
 ...
-- tweets/folder3/CNN.csv
+- tweets/group/folder3/CNN.csv
 - cache/
 ```
+
+__Remark__: The data retrieval in this system is not designed to be optimal. One can alter the data retrieval interface to
+make it compatible with database systems (refer to [this file](https://github.com/shayanfazeli/mockingbird_app/blob/master/app/libraries/trajectory/utilities.py) for those interfaces).
 
 Note that you need to create a `cache` folder as well. Once done, modify the
 `.env` file to reflect on the changes.
@@ -73,10 +74,18 @@ python3 app/scripts/mockingbird_download.py \
 ```
 
 ## Collaboration
-Our dataset can be shared upon reasonable collaboration request. Please contact [shayan@cs.ucla.edu](mailto:shayan@cs.ucla.edu).
+Our dataset can be shared upon reasonable collaboration request. Please contact [shayan@cs.ucla.edu](mailto:shayan@cs.ucla.edu):
+* Last update: November 22nd, 2022 (Data since January 1st, 2020)
+* Institution groups: [`institution_list_1`](https://github.com/shayanfazeli/mockingbird_app/blob/master/warehouse/data/refocus/accounts.csv), [`public_health`](https://github.com/shayanfazeli/mockingbird_app/blob/master/warehouse/data/refocus/naccho_handles.csv)
 
 
 ## Citation
 ```
-
+@software{Mockingbird_2022_covid_institutional_tweets,
+  author = {Shayan Fazeli},
+  title = {{Mockingbird App: Analytics for Institutional Tweets Related to COVID-19}},
+  url = {https://github.com/shayanfazeli/mockingbird_app},
+  version = {0.1.0},
+  year = {2022}
+}
 ```
